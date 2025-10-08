@@ -435,8 +435,7 @@ class BaseTimeSeriesForecastingRunner(BaseEpochRunner):
                     'target': forward_return['target'].detach().cpu().numpy(),
                     'inputs': forward_return['inputs'].detach().cpu().numpy()
                 }
-                self._save_test_results(batch_idx, batch_data)
-
+                self._save_test_results_npz(batch_idx, batch_data)
             # evaluation on specific timesteps
             for i in self.evaluation_horizons:
                 pred_h = pred[:, i, :, :]
@@ -518,8 +517,38 @@ class BaseTimeSeriesForecastingRunner(BaseEpochRunner):
             self.save_best_model(train_epoch, 'val/' + self.target_metrics, greater_best=greater_best)
 
     @master_only
-    def _save_test_results(self, batch_idx: int, batch_data: Dict[str, np.ndarray]) -> None:
+    def _save_test_results_npz(self, batch_idx: int, batch_data: Dict[str, np.ndarray]) -> None:
+        """
+        Save the test results to a single .npz file.
+        
+        Args:
+            batch_idx (int): The index of the current batch.
+            batch_data (Dict[str, np.ndarray]): The test results for the current batch.
+        """
 
+        save_dir = os.path.join(self.ckpt_save_dir, 'test_results')
+        os.makedirs(save_dir, exist_ok=True)
+        npz_path = os.path.join(save_dir, 'test_results.npz')
+
+        # Concatenate all batches
+        inputs = np.concatenate([batch_data['inputs'] for _ in range(batch_idx + 1)], axis=0)
+        predictions = np.concatenate([batch_data['prediction'] for _ in range(batch_idx + 1)], axis=0)
+        targets = np.concatenate([batch_data['target'] for _ in range(batch_idx + 1)], axis=0)
+
+        # Save as npz file
+        np.savez_compressed(npz_path, 
+                        inputs=inputs,
+                        predictions=predictions, 
+                        targets=targets)
+        
+        # print(f"Test results saved to {npz_path}")
+        # print(f"Inputs shape: {inputs.shape}")
+        # print(f"Predictions shape: {predictions.shape}")
+        # print(f"Targets shape: {targets.shape}")
+    
+    @master_only
+    def _save_test_results(self, batch_idx: int, batch_data: Dict[str, np.ndarray]) -> None:
+        # print("TSF")
         """
         Save the test results to disk.
         

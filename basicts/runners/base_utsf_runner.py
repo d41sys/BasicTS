@@ -438,7 +438,7 @@ class BaseUniversalTimeSeriesForecastingRunner(BaseIterationRunner):
 
     @master_only
     def _save_test_results(self, batch_idx: int, batch_data: Dict[str, np.ndarray]) -> None:
-
+        # print("UTSC")
         """
         Save the test results to disk.
         

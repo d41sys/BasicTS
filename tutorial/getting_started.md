@@ -52,6 +52,7 @@ After ensuring PyTorch is installed correctly, you can install the other depende
 
 ```bash
 pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Example Setups
